@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+    <head>
+        <title>My Checking Config Values APP</title>
+    </head>
+
+    <body>
+        {% if key and value %}
+        <p>You should see the value for you {{key}} in the application logs!</p>
+        {% elif key and not value %}
+        <p>No value defined for {{key}}!</p>
+        {% else %}
+        <p>No key provided!</p>
+        {% endif %}
+    </body>
+</html>
