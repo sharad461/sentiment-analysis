@@ -1,1 +1,1 @@
-web: python app.py $PORT
+web: python sent-al/app.py $PORT
