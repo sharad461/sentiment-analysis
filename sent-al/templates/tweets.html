@@ -1,0 +1,10 @@
+{% extends 'layout.html' %}
+{% block text %}
+<div class ="main-content">
+	<form method="GET" action="">
+		{{ form.hidden_tag() }}
+		{{ form.keyword.label() }}
+		{{ form.keyword() }}
+		{{ form.submit() }}
+	</form>
+</div>{% endblock %}
