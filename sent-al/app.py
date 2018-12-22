@@ -18,6 +18,10 @@ socketio = SocketIO(app)
 
 port = int(environ.get("PORT", 5000))
 
+def background_thread(kw):
+	global socketio
+	twstream.stream(kw, socketio)
+
 @app.route('/')
 def index():
     return render_template("home.html", title="Sentiment Analysis")
@@ -36,12 +40,17 @@ def analyze_tweets_keyword(kw):
 	try:
 		global thread
 		if thread == None:
-			thread = Thread(target=twstream.stream, args=(kw, socketio))
+			thread = Thread(target=background_thread, args=(kw,))
 			thread.daemon = True
 	except Exception as e:
 		print("Error: ", e)
 	thread.start()
 	return render_template("tweets.html", title="Live Sentiment", form=forms.KeywordSearch())
 
+@socketio.on("end")
+def stop(data):
+	global thread
+	thread=None
+	
 if __name__ == "__main__":
 	socketio.run(app, host='0.0.0.0', port=port, debug=True)

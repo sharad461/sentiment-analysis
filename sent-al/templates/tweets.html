@@ -14,6 +14,10 @@
 		append = '<br><span>'+ res.tweet +'</span>'
 		document.querySelector("#tweet-log").innerHTML += append
 	})
+
+	socket.on('end', res => {
+		socket.emit('end', {'state':1})
+	})
 	document.querySelector("#kw-form #submit").onclick = ()=>{document.location.href="/analyze/tweets/"+ document.querySelector("#keyword").value; return false}
 </script>
 {% endblock %}

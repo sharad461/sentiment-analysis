@@ -2,6 +2,7 @@ from json import loads
 from tweepy import Stream, OAuthHandler
 from tweepy.streaming import StreamListener
 from os import getenv
+import sys
 
 TWIT_API = getenv('TWIT_API', 'UdBwYOS9iyz2AKM2XlVLj041v')
 TWIT_SECRET = getenv('TWIT_SECRET', 'mFnjIkKlqOIFEF8pLS8JKNUaNmzIdJPl5KD8evx2ijbVZ8Im2N')
@@ -27,6 +28,7 @@ class listener(StreamListener):
 		if self.count < 15:
 			return True
 		else:
+			self.socket.emit("end", {'state':1})
 			return False
 
 	def on_error(self, status):
