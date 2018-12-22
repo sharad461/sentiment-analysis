@@ -3,4 +3,3 @@ flask_socketio
 gevent
 flask_wtf
 tweepy
-json
