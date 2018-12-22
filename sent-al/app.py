@@ -39,9 +39,9 @@ def analyze_tweets():
 def analyze_tweets_keyword(kw):
 	try:
 		global thread
-		if thread == None:
-			thread = Thread(target=background_thread, args=(kw,))
-			thread.daemon = True
+		thread = None
+		thread = Thread(target=background_thread, args=(kw,))
+		thread.daemon = True
 	except Exception as e:
 		print("Error: ", e)
 	thread.start()
@@ -51,6 +51,6 @@ def analyze_tweets_keyword(kw):
 def stop(data):
 	global thread
 	thread=None
-	
+
 if __name__ == "__main__":
 	socketio.run(app, host='0.0.0.0', port=port, debug=True)
