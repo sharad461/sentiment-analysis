@@ -8,7 +8,7 @@
 		{{ form.submit() }}
 	</form>
 </div><div id="tweet-log"></div>{% endblock %}{% block javascript %}<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.slim.js"></script><script>
-	var socket = io.connect("http://localhost:5000/")
+	var socket = io.connect('//' + document.domain + ':' + location.port);
 
 	socket.on('new tweet', res => {
 		append = '<br><span>'+ res.tweet +'</span>'
