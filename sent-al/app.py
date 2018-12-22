@@ -1,12 +1,20 @@
+from gevent.monkey import patch_all
+patch_all()
+
+from flask_socketio import SocketIO, emit
 from flask import Flask, render_template, request, url_for, redirect
 from os import environ
 import modules.forms as forms
 import modules.twitter_stream as twstream
+from threading import Thread
+
+thread = None
 
 app = Flask(__name__)
 
-# Key for CSRF
+# Key against CSRF
 app.config["SECRET_KEY"] = '1f5aad569eef9cc369c32ec14f3d2cab'
+socketio = SocketIO(app)
 
 port = int(environ.get("PORT", 5000))
 
@@ -19,22 +27,21 @@ def about():
     return render_template("about.html", title="About Sentiment Analysis",
     	name="Sentiment Analysis")
 
-@app.route('/analyze/tweets', methods=["GET"])
+@app.route('/analyze/tweets')
 def analyze_tweets():
-	# try:
-	# 	if request.method == "GET":
-	# 		if request.args.getlist('keyword'):
-	# 			keyword = request.args.getlist('keyword')[0]
-	# 			twstream.stream(keyword)
-	# 			return render_template("tweets.html", tweets = tweets)
-	# except Exception as e:
-	# 	print(e)
+	return render_template("tweets.html", title="Live Sentiment", form=forms.KeywordSearch())
 
-	kw_form = forms.KeywordSearch()
-	if kw_form.validate_on_submit():
-		# form validated
-		pass
-	return render_template("tweets.html", title="Live Sentiment", form=kw_form)
+@app.route('/analyze/tweets/<string:kw>')
+def analyze_tweets_keyword(kw):
+	try:
+		global thread
+		if thread == None:
+			thread = Thread(target=twstream.stream, args=(kw, socketio))
+			thread.daemon = True
+	except Exception as e:
+		print("Error: ", e)
+	thread.start()
+	return render_template("tweets.html", title="Live Sentiment", form=forms.KeywordSearch())
 
 if __name__ == "__main__":
-	app.run(host='0.0.0.0', port=port, debug=True)
+	socketio.run(app, host='0.0.0.0', port=port, debug=True)
