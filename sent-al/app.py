@@ -1,14 +1,14 @@
 from gevent.monkey import patch_all
 patch_all()
 
-from flask_socketio import SocketIO, emit
 from flask import Flask, render_template, request, url_for, redirect
+from flask_socketio import SocketIO, emit
 from os import environ
 import modules.forms as forms
 import modules.twitter_stream as twstream
 from threading import Thread
 
-thread = None
+thread, tag, run = None, None, True
 
 app = Flask(__name__)
 
@@ -18,9 +18,26 @@ socketio = SocketIO(app)
 
 port = int(environ.get("PORT", 5000))
 
-def background_thread(kw):
-	global socketio
-	twstream.stream(kw, socketio)
+class Listener(twstream.listener):
+	def on_data(self, data):
+		tweet = twstream.loads(data)["text"]
+		socketio.emit("new tweet", {'tweet': tweet})
+		return run
+
+def stream(tag):
+	stream = twstream.Stream(twstream.auth, Listener())
+	stream.filter(languages=["en"], track=[tag])
+
+def changeState(P):
+	global thread
+	global run
+
+	if P == 0:
+		run = False
+		thread = False
+	elif P == 1:
+		run = True
+		thread = True
 
 @app.route('/')
 def index():
@@ -35,22 +52,29 @@ def about():
 def analyze_tweets():
 	return render_template("tweets.html", title="Live Sentiment", form=forms.KeywordSearch())
 
-@app.route('/analyze/tweets/<string:kw>')
+@app.route('/analyze/tweets/<string:kw>', methods=["GET","POST"])
 def analyze_tweets_keyword(kw):
 	try:
-		global thread
-		thread = None
-		thread = Thread(target=background_thread, args=(kw,))
+		global tag
+		tag = kw
+		changeState(1)
+		thread = Thread(target=stream, args=(tag,))
 		thread.daemon = True
 	except Exception as e:
 		print("Error: ", e)
 	thread.start()
-	return render_template("tweets.html", title="Live Sentiment", form=forms.KeywordSearch())
+	return render_template("tweets.html", title="Live Sentiment", form=forms.KeywordSearch(data={"keyword": tag}))
 
-@socketio.on("end")
+@socketio.on("stop-stream")
 def stop(data):
-	global thread
-	thread=None
+	changeState(0)
+
+@socketio.on("continue-stream")
+def cont(data):
+	changeState(1)
+	thread = Thread(target=stream, args=(tag,))
+	thread.daemon = True
+	thread.start()
 
 if __name__ == "__main__":
 	socketio.run(app, host='0.0.0.0', port=port, debug=True)

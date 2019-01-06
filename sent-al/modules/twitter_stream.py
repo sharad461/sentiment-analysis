@@ -2,7 +2,6 @@ from json import loads
 from tweepy import Stream, OAuthHandler
 from tweepy.streaming import StreamListener
 from os import getenv
-import sys
 
 TWIT_API = getenv('TWIT_API', 'UdBwYOS9iyz2AKM2XlVLj041v')
 TWIT_SECRET = getenv('TWIT_SECRET', 'mFnjIkKlqOIFEF8pLS8JKNUaNmzIdJPl5KD8evx2ijbVZ8Im2N')
@@ -11,35 +10,22 @@ TWIT_ACCESS_SECRET = getenv('TWIT_ACCESS_SECRET', 'f4ed2V4B72aBxMo3Hy0ezPIJ5UIqc
 
 class listener(StreamListener):
 	# Currently reads only the tweet text. Also see if metadata can improve analysis.
-	def __init__(self, slf, socket):
-		self.slf = slf
-		self.socket = socket
+	def __init__(self):
 		self.count = 0
-
+		
 	def on_data(self, data):
 		tweet = loads(data)["text"]
-		if self.slf == 0:
-			self.socket.emit("new tweet", {'tweet': tweet})
-		# else:
 		print(tweet)
-
-		self.count += 1
-
-		if self.count < 15:
-			return True
-		else:
-			self.socket.emit("end", {'state':1})
-			return False
+		return True
 
 	def on_error(self, status):
 		app.logger.info("Error! %", (status))
 
-def stream(tag, socket=None):
+def stream(tag):
 	'''
 	A stream is probably better with single keywords. Multiple keywords ("apple", "android") will shift live sentiment badly.
 	'''
-	slf = 1 if __name__ == "__main__" else 0
-	stream = Stream(auth, listener(slf, socket))
+	stream = Stream(auth, listener())
 	stream.filter(languages=["en"], track=[tag])
 
 auth = OAuthHandler(TWIT_API,TWIT_SECRET)
