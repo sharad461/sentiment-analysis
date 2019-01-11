@@ -21,17 +21,6 @@ port = int(environ.get("PORT", 5000))
 
 model = LoadModel("NaiveBayes")
 
-class Listener(twstream.listener):
-	def on_data(self, data):
-		tweet = twstream.loads(data)["text"]
-		polarity = model.polarity(tweet)
-		socketio.emit("new tweet", {'tweet': tweet, 'polarity': polarity})
-		return run
-
-def stream(tag):
-	stream = twstream.Stream(twstream.auth, Listener())
-	stream.filter(languages=["en"], track=[tag])
-
 def changeState(P):
 	global thread
 	global run
@@ -42,6 +31,20 @@ def changeState(P):
 	elif P == 1:
 		run = True
 		thread = True
+
+class Listener(twstream.listener):
+	def on_data(self, data):
+		tweet = twstream.loads(data)["text"]
+		polarity = model.polarity(tweet)
+		socketio.emit("new tweet", {'tweet': tweet, 'polarity': polarity})
+		self.count += 1
+		if self.count > 100:
+			changeState(0)
+		return run
+
+def stream(tag):
+	stream = twstream.Stream(twstream.auth, Listener())
+	stream.filter(languages=["en"], track=[tag])
 
 @app.route('/')
 def index():
