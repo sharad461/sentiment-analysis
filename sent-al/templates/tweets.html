@@ -7,14 +7,40 @@
 		{{ form.keyword() }}
 		{{ form.submit() }}
 	</form>
-</div><button id="stream-control">Pause</button><div id="tweet-log"></div>{% endblock %}{% block javascript %}<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.slim.js"></script><script>
+</div><div id="chartContainer" style="height: 300px; width: 100%;"></div><button id="stream-control">Pause</button><div id="tweet-log"></div>{% endblock %}{% block javascript %}<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.slim.js"></script><script src="{{url_for('static', filename="canvasjs.min.js" )}}"></script><script>
+	var xValue = 0;
+	var dataPoints = [];
+	var chart = new CanvasJS.Chart("chartContainer", {
+		theme: "light2",
+		title: {
+			text: "Live Data"
+		},
+		data: [{
+			type: "line",
+			dataPoints: dataPoints
+		}],
+		axisY:{
+			maximum:1.2,
+			minimum:-1.2
+		}
+	});
+
+	function addData(data) {
+		dataPoints.push({x: data[0][0], y: (data[0][1])});
+		xValue++;
+		yValue = (data[0][1]);
+		chart.render();
+	}
+
 	var socket = io.connect('//' + document.domain + ':' + location.port);
 
 	socket.on('new tweet', res => {
-		append = '<br><span>'+ res.tweet +'</span>'
+		append = '<br><span>' + xValue + ': '+ res.tweet +'</span>'
 		tweetLog = document.querySelector("#tweet-log")
 		content = tweetLog.innerHTML
 		tweetLog.innerHTML = append + content
+		addData([[xValue, res.polarity]])
+
 	})
 
 	document.querySelector("#stream-control").onclick = ()=> {

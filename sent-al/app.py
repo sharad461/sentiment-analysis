@@ -6,6 +6,7 @@ from flask_socketio import SocketIO, emit
 from os import environ
 import modules.forms as forms
 import modules.twitter_stream as twstream
+from modules.load_model import LoadModel
 from threading import Thread
 
 thread, tag, run = None, None, True
@@ -18,10 +19,13 @@ socketio = SocketIO(app)
 
 port = int(environ.get("PORT", 5000))
 
+model = LoadModel("NaiveBayes")
+
 class Listener(twstream.listener):
 	def on_data(self, data):
 		tweet = twstream.loads(data)["text"]
-		socketio.emit("new tweet", {'tweet': tweet})
+		polarity = model.polarity(tweet)
+		socketio.emit("new tweet", {'tweet': tweet, 'polarity': polarity})
 		return run
 
 def stream(tag):
