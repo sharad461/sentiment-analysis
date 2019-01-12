@@ -1,19 +1,21 @@
 {% extends 'layout.html' %}
 {% block text %}
-<div class ="main-content">
+<div class="container">
 	<form id="kw-form">
 		{{ form.hidden_tag() }}
-		{{ form.keyword.label() }}
-		{{ form.keyword() }}
-		{{ form.submit() }}
+		<div class="form-group">
+			{{ form.keyword.label(class_="col-form-label col-form-label-sm") }}
+			{{ form.keyword(class_="form-control form-control-sm", style="width:300px;display:inline;") }}
+			{{ form.submit(class_="generic_btn") }}
+		</div>
 	</form>
-</div><div id="chartContainer" style="height: 300px; width: 100%;"></div><button id="stream-control">Pause</button><div id="tweet-log"></div>{% endblock %}{% block javascript %}<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.slim.js"></script><script src="{{url_for('static', filename="canvasjs.min.js" )}}"></script><script>
+<div id="chartContainer"></div>{% if live %}<button id="stream-control" class="btn btn-outline-danger">Pause</button>{% endif  %}<div id="tweet-log"></div></div>{% endblock %}{% block javascript %}<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.slim.js"></script><script src="{{url_for('static', filename="js/canvasjs.min.js" )}}"></script><script>
 	var xValue = 0;
 	var dataPoints = [];
 	var chart = new CanvasJS.Chart("chartContainer", {
 		theme: "light2",
 		title: {
-			text: "Live Data"
+			text: "Polarity of Twitter Stream"
 		},
 		data: [{
 			type: "line",
@@ -24,7 +26,6 @@
 			minimum:-1.2
 		}
 	});
-	
 
 	function addData(data) {
 		dataPoints.push({x: data[0][0], y: (data[0][1])});
@@ -36,14 +37,16 @@
 	var socket = io.connect('//' + document.domain + ':' + location.port);
 
 	socket.on('new tweet', res => {
-		append = '<br><span>' + xValue + ': '+ res.tweet +'</span>'
+		append = '<span class="tweet">' + xValue + ': '+ res.tweet +'</span>'
 		tweetLog = document.querySelector("#tweet-log")
 		content = tweetLog.innerHTML
 		tweetLog.innerHTML = append + content
 		addData([[xValue, res.polarity]])
 
-	})
-
+	})	
+	document.querySelector("#kw-form #submit").onclick = ()=>{document.location.href="/analyze/tweets/"+ document.querySelector("#keyword").value; return false}
+</script>{% if live %}
+<script>
 	document.querySelector("#stream-control").onclick = ()=> {
 		control = document.querySelector("#stream-control")
 		if(control.innerHTML == "Pause") {
@@ -54,7 +57,6 @@
 			control.innerHTML = "Pause"
 		}
 	}
-
-	document.querySelector("#kw-form #submit").onclick = ()=>{document.location.href="/analyze/tweets/"+ document.querySelector("#keyword").value; return false}
 </script>
+{% endif %}
 {% endblock %}

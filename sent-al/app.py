@@ -49,9 +49,11 @@ def stream(tag):
 @app.route('/')
 def index():
     return render_template("home.html", title="Sentiment Analysis")
-@app.route('/text')
+
+@app.route('/analyze/text')
 def text():
-	return render_template('text.html',title="analyze text")
+	return render_template('text.html',title="Text Analysis")
+
 @app.route('/about')
 def about():
     return render_template("about.html", title="About Sentiment Analysis",
@@ -72,7 +74,7 @@ def analyze_tweets_keyword(kw):
 	except Exception as e:
 		print("Error: ", e)
 	thread.start()
-	return render_template("tweets.html", title="Live Sentiment", form=forms.KeywordSearch(data={"keyword": tag}))
+	return render_template("tweets.html", title="Live Sentiment", form=forms.KeywordSearch(data={"keyword": tag}), live=1)
 
 @socketio.on("stop-stream")
 def stop(data):

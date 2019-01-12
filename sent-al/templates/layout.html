@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>{{title}}</title>		
+	<title>{{title}}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">		
+	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename="bootstrap.css" )}}">
+	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename="custom.min.css" )}}">
 	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename="styles.css" )}}">
-	<link href="https://fonts.googleapis.com/css?family=Flamenco" rel="stylesheet">
 </head>
 <body>
 	{%include 'includes/_navbar.html'%}{% block text %}{% endblock %}

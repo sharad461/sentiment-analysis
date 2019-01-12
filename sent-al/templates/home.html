@@ -1,9 +1,15 @@
 {% extends 'layout.html' %}
 {% block text %}
-<div class ="main-content">
-	<h1>WECOME TO <span class="change">SENTIMENT ANALYZER</span>.<br>
-	ANALYZE ANYTHING</h1>
-	<a href="analyze/tweets" class="btn btn-2">Analyze Tweet</a>
-	<!-- class="btn btn-1" can be used for active button -->
-	<a href="#" class="btn btn-2">Analyze Text</a>
-</div>{% endblock %}
+<div class="container">
+  <div class="page-header" id="banner">
+    <div class="row">
+      <div class="col-lg-8 col-md-7 col-sm-6">
+        <h1>Sentiment Analysis <small class="text-muted">with NLP</small></h1>
+        <p class="lead">Machine on Text</p>
+        <a href="/analyze/tweets"><button type="button" class="btn btn-outline-primary">Analyze Tweets</button></a>
+        <a href="/analyze/text"><button type="button" class="btn btn-outline-primary">Analyze Text</button></a>
+      </div>
+    </div>
+  </div>
+</div>
+<div></div>{% endblock %}

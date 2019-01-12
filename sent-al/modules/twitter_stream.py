@@ -15,11 +15,11 @@ class listener(StreamListener):
 		
 	def on_data(self, data):
 		tweet = loads(data)["text"]
-		print(tweet)
+		# print(tweet)
 		return True
 
 	def on_error(self, status):
-		app.logger.info("Error! %", (status))
+		print("Error! ", (status))
 
 def stream(tag):
 	'''
