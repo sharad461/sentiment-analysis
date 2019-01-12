@@ -1,0 +1,43 @@
+{% extends 'layout.html' %}
+{% block text %}
+<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+<script src="{{url_for('static', filename="canvasjs.min.js" )}}"></script>
+	<textarea ></textarea>>
+	<button >analyze</button>
+	<div class="here"></div>
+
+	<script>
+		
+	
+	
+	window.onload = function() {
+
+	var chart = new CanvasJS.Chart("chartContainer", {
+	
+	
+	animationEnabled: true,
+	title: {
+		text: "this is text analyzer"
+	},
+	data: [{
+		type: "pie",
+		startAngle: 25,
+		toolTipContent: "<b>{label}</b>: {y}%",
+		showInLegend: "true",
+		legendText: "{label}",
+		indexLabelFontSize: 16,
+		indexLabel: "{label} - {y}%",
+		dataPoints: [
+			{ y: 50, label: "positive" },
+          	{ y: 20, label: "negative" },
+			
+		]
+	}]
+});
+chart.render();
+
+}
+
+</script>
+
+{% endblock %}

@@ -49,7 +49,9 @@ def stream(tag):
 @app.route('/')
 def index():
     return render_template("home.html", title="Sentiment Analysis")
-
+@app.route('/text')
+def text():
+	return render_template('text.html',title="analyze text")
 @app.route('/about')
 def about():
     return render_template("about.html", title="About Sentiment Analysis",
