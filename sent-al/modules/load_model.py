@@ -35,7 +35,7 @@ class LoadModel():
 
 		p = -1 if pred_label == "neg" else 1 # considering only two labels
 
-		return p*round(prob_dist.prob(pred_label),3)
+		return p*round(prob_dist.prob(pred_label),4)
 
 if __name__ == '__main__':
 	model = LoadModel("NaiveBayes")

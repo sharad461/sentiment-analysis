@@ -1,8 +1,7 @@
 {% extends 'layout.html' %}
 {% block text %}
 <div class="container">
-<div id="chartContainer" style="height: 300px; width: 100%;"></div>
-<script src="{{url_for('static', filename="js/canvasjs.min.js" )}}"></script>
+<div id="chartContainer" style="height: 300px; width: 100%;"></div>{% endblock %}{% block javascript %}<script src="{{url_for('static', filename="js/canvasjs.min.js" )}}"></script>
 	<textarea></textarea>
 	<button>analyze</button>
 	<div class="here"></div>

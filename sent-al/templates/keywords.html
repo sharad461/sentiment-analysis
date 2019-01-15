@@ -1,0 +1,64 @@
+{% extends 'layout.html' %}
+{% block text %}
+<div class="container">
+	<form id="kw-form">
+		{{ form.hidden_tag() }}
+		<div class="form-group">
+			{{ form.keyword(class_="form-control form-control-sm", style="width:300px;display:inline;", placeholder="Keyword") }}
+			{{ form.submit(class_="generic_btn") }}
+		</div>
+	</form>
+<div id="chartContainer"></div>{% if live %}<button id="stream-control" class="btn btn-outline-danger">Pause</button>{% endif  %}<div id="tweet-log"></div></div>{% endblock %}{% block javascript %}<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.slim.js"></script><script src="{{url_for('static', filename="js/canvasjs.min.js" )}}"></script><script>
+	var xValue = 0;
+	var dataPoints = [];
+	var chart = new CanvasJS.Chart("chartContainer", {
+		theme: "light2",
+		title: {
+			text: "Polarity of Twitter Stream"
+		},
+		data: [{
+			type: "line",
+			dataPoints: dataPoints
+		}],
+		axisY:{
+			maximum:1.2,
+			minimum:-1.2
+		}
+	});
+
+	function addData(data) {
+		dataPoints.push({x: data[0][0], y: (data[0][1])});
+		xValue++;
+		yValue = (data[0][1]);
+		chart.render();
+	}
+
+	var socket = io.connect('//' + document.domain + ':' + location.port);
+
+	socket.on('new tweet', res => {
+		append = '<span class="tweet">' + xValue + ': '+ res.tweet +'</span>'
+		tweetLog = document.querySelector("#tweet-log")
+		content = tweetLog.innerHTML
+		tweetLog.innerHTML = append + content
+		addData([[xValue, res.polarity]])
+
+	})	
+	document.querySelector("#kw-form #submit").onclick = ()=>{
+		field = document.querySelector("#kw-form #keyword");
+		if(field.value.replace(/\s/g,'') == ""||field.value == null) {return false;}else{document.location.href="/analyze/keyword/"+ document.querySelector("#keyword").value; return false;}
+	}
+</script>{% if live %}
+<script>
+	document.querySelector("#stream-control").onclick = ()=> {
+		control = document.querySelector("#stream-control")
+		if(control.innerHTML == "Pause") {
+			socket.emit('stop-stream', {'s':1})
+			control.innerHTML = "Continue"
+		} else if(control.innerHTML == "Continue") {
+			socket.emit('continue-stream', {'s':1})
+			control.innerHTML = "Pause"
+		}
+	}
+</script>
+{% endif %}
+{% endblock %}

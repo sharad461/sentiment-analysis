@@ -1,0 +1,28 @@
+{% extends 'layout.html' %}
+{% block text %}
+<div class="container">
+	Twitter profile analysis <span class="text-muted">collects the latest tweets from a twitter handle and runs simple analyses and visualizes the sentiment data.</span><hr>
+	<form id="profile-form">
+		{{ form.hidden_tag() }}
+		<div class="form-group">
+			{{ form.searchTerm(class_="form-control form-control-sm", style="width:300px;display:inline;", placeholder="e.g. Bill Gates") }}
+			{{ form.submit(class_="generic_btn") }}
+		</div>
+	</form>
+	<div>
+		{% for result in results %}
+		<div class="card border-secondary mb-3" style="max-width: 30rem;">
+		  <div class="card-body" style="padding:1em;"><div class="float-right"><a href="/analyze/people/{{result.screen_name}}"><button type="button" class="btn btn-outline-primary btn-sm">Analyze</button></a></div>
+		    <a href="https://twitter.com/{{result.screen_name}}"><img src="{{ result.profile_image_url_https }}" class="twitter-search-image"></a><a href="https://twitter.com/{{result.screen_name}}"><strong>{{ result.name }}</strong></a>{% if result.verified %} <span class="badge verified">Verified</span>{% endif %}
+		    <p class="card-text" style="font-family:Segoe UI; font-size:14px;">{{ result.description }}</p>
+		  </div>
+		</div>
+		{% endfor %}
+	</div>	
+</div>{% endblock %}{% block javascript %}<script type="text/javascript">
+	document.querySelector("#profile-form #submit").onclick = ()=>{
+		field = document.querySelector("#profile-form #searchTerm");
+		if(field.value.replace(/\s/g,'') == ""||field.value == null) {return false;}else{document.location.href="/analyze/twitter/"+ document.querySelector("#searchTerm").value; return false;}
+	}
+</script>
+{% endblock %}

@@ -4,10 +4,15 @@ patch_all()
 from flask import Flask, render_template, request, url_for, redirect
 from flask_socketio import SocketIO, emit
 from os import environ
+
 import modules.forms as forms
-import modules.twitter_stream as twstream
+import modules.twitter as tw
 from modules.load_model import LoadModel
+
 from threading import Thread
+from json import dumps, loads
+from math import floor
+from random import shuffle
 
 thread, tag, run = None, None, True
 
@@ -15,11 +20,21 @@ app = Flask(__name__)
 
 # Key against CSRF
 app.config["SECRET_KEY"] = '1f5aad569eef9cc369c32ec14f3d2cab'
+
 socketio = SocketIO(app)
 
 port = int(environ.get("PORT", 5000))
 
 model = LoadModel("NaiveBayes")
+
+def weigh(topics):
+	maximum = topics[0][1]
+	shuffle(topics)
+	topics = dict(topics)
+
+	for key in topics:
+		topics[key] = floor(topics[key]/maximum*6)
+	return topics
 
 def changeState(P):
 	global thread
@@ -32,9 +47,9 @@ def changeState(P):
 		run = True
 		thread = True
 
-class Listener(twstream.listener):
+class Listener(tw.listener):
 	def on_data(self, data):
-		tweet = twstream.loads(data)["text"]
+		tweet = loads(data)["text"]
 		polarity = model.polarity(tweet)
 		socketio.emit("new tweet", {'tweet': tweet, 'polarity': polarity})
 		self.count += 1
@@ -43,7 +58,7 @@ class Listener(twstream.listener):
 		return run
 
 def stream(tag):
-	stream = twstream.Stream(twstream.auth, Listener())
+	stream = tw.Stream(tw.auth, Listener())
 	stream.filter(languages=["en"], track=[tag])
 
 @app.route('/')
@@ -56,14 +71,17 @@ def text():
 
 @app.route('/about')
 def about():
-    return render_template("about.html", title="About Sentiment Analysis",
-    	name="Sentiment Analysis")
+    return render_template("about.html", title="About Sentiment Analysis", name="Sentiment Analysis")
 
 @app.route('/analyze/tweets')
-def analyze_tweets():
-	return render_template("tweets.html", title="Live Sentiment", form=forms.KeywordSearch())
+def tweets():
+	return render_template("tweets.html", title="Twitter Analysis")
 
-@app.route('/analyze/tweets/<string:kw>', methods=["GET","POST"])
+@app.route('/analyze/keyword')
+def analyze_tweets():
+	return render_template("keywords.html", title="Live Sentiment", form=forms.KeywordSearch())
+
+@app.route('/analyze/keyword/<string:kw>')
 def analyze_tweets_keyword(kw):
 	try:
 		global tag
@@ -74,7 +92,25 @@ def analyze_tweets_keyword(kw):
 	except Exception as e:
 		print("Error: ", e)
 	thread.start()
-	return render_template("tweets.html", title="Live Sentiment", form=forms.KeywordSearch(data={"keyword": tag}), live=1)
+	return render_template("keywords.html", title="Live Sentiment", form=forms.KeywordSearch(data={"keyword": tag}), live=1)
+
+@app.route('/analyze/twitter')
+def analyze_twitter():
+	return render_template("people.html", title="Profile Sentiment", form=forms.ProfileSearch())
+
+@app.route('/analyze/twitter/<string:st>')
+def analyze_twitter_st(st):
+	searchResults = tw.profilesearch(st, 12)
+	return render_template("people.html", title="Profile Sentiment", form=forms.ProfileSearch(data={"searchTerm":st}), results=searchResults)
+
+@app.route('/analyze/people/<string:name>')
+def analyze_people(name):
+	tweets = list(reversed(tw.getTweets(name, 65)))
+	topics = weigh(tw.getTopics([tweet["full_text"] for tweet in tweets], 15))
+	polarity = []
+	for tweet in tweets:
+		polarity.append(model.polarity(tweet["full_text"]))
+	return render_template("profile.html", title=(name+" - Profile Sentiment"), tweets=tweets, polarities=polarity, n=name, topics=topics)
 
 @socketio.on("stop-stream")
 def stop(data):
