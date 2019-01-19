@@ -33,9 +33,17 @@ class LoadModel():
 		prob_dist = self.classifier.prob_classify(word_features(unseen))
 		pred_label = prob_dist.max()
 
-		p = -1 if pred_label == "neg" else 1 # considering only two labels
+		if pred_label == "pos":
+			p = 1
+		elif pred_label == "neg":
+			p = -1
+		else:
+			p = 0
 
 		return p*round(prob_dist.prob(pred_label),4)
+
+	def label(self, unseen):
+		return self.classifier.classify(word_features(unseen))
 
 if __name__ == '__main__':
 	model = LoadModel("NaiveBayes")

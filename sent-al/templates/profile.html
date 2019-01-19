@@ -1,30 +1,34 @@
 {% extends 'layout.html' %}
 {% block text %}
-<div class="container">
-	<div id="tag-cloud">
-		<div class="card border-secondary mb-3" style="max-width: 30rem;">
-		  <div class="card-body" style="padding:0.75em;">
-		    <h5 class="card-title">@{{ n }} is talking about...</h5>
-		    <p class="card-text">
-		    {% for topic in topics %}
-			<span class="tag-{{topics[topic]}}">{{ topic }}</span>
-			{% endfor %}
-			</p>
-		  </div>
+<div class="container">{% if error %}
+	<div class="alert alert-dismissible alert-danger">
+		<strong>Oh snap!</strong> {{error}} <a href="/analyze/twitter" class="alert-link">Try again</a>.
+	</div>{% else %}
+	<div class="row">
+		<div class="col-lg-3">
+			<div id="tag-cloud">
+				<div class="card border-secondary mb-3">
+				  <div class="card-body" style="padding:0.75em;">
+				    <h5 class="card-title">@{{ n }} is talking about...</h5>
+				    <p class="card-text">{% for topic in topics %}
+					<span class="tag-{{topics[topic]}}">{{ topic }}</span>{% endfor %}
+					</p>
+				  </div>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-9">
+			<div id="chartContainer"></div>
 		</div>
 	</div>
-	<div id="chartContainer"></div>
-		<div id="tweet-log">
-			{% for tweet in tweets %}
-			<span class="tweet">{{ tweet.created_at }} - {{ tweet.full_text }}</span>
-			{% endfor %}
-		</div>
-</div>{% endblock %}{% block javascript %}<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.slim.js"></script>
-	<script src="{{url_for('static', filename="js/canvasjs.min.js" )}}"></script><script>
+	<div id="tweet-log">{% for sn, tweet in tweets.items() %}
+		<span class="tweet" id="tweet-{{ sn }}">{{ tweet.created_at }} - {{ tweet.full_text }}</span>{% endfor %}
+	</div>{% endif %}
+</div>{% endblock %}{% block javascript %}{% if not error %}<script src="{{url_for('static', filename="js/canvasjs.min.js" )}}"></script><script>
 	var p = {{polarities|tojson|safe}}
 	var dataPoints = []
 	for(let i=0;i<p.length;i++){
-		dataPoints.push({x:(i+1),y:p[i]})
+		dataPoints.push({x:(i+1),y:p[i], click: function(e){window.location.href="#tweet-"+(i+1); highlight(i+1)}})
 	}
 	window.onload = ()=>{
 		var chart = new CanvasJS.Chart("chartContainer", {
@@ -35,15 +39,20 @@
 			},
 			data: [{
 				type: "line",
+      			cursor:"pointer",
 				dataPoints: dataPoints
 			}],
 			axisY:{
-				maximum:1.2,
-				minimum:-1.2
+				maximum:1.1,
+				minimum:-1.1
 			}
 		});
 		chart.render();
 	}
-</script>
-</div>
-{% endblock %}
+	current = 1;
+	function highlight(id){
+		document.querySelector("#tweet-"+(current)).style = "";
+		document.querySelector("#tweet-"+(id)).style = "font-weight:600;color:red;";
+		current = id;
+	}
+</script>{% endif %}{% endblock %}

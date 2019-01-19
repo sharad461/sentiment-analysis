@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 {% block text %}
-<div class="container">
+<div class="container"><span class="text-muted">Search tweets from the Twitter live stream using keywords.</span><hr>
 	<form id="kw-form">
 		{{ form.hidden_tag() }}
 		<div class="form-group">
@@ -9,7 +9,7 @@
 		</div>
 	</form>
 <div id="chartContainer"></div>{% if live %}<button id="stream-control" class="btn btn-outline-danger">Pause</button>{% endif  %}<div id="tweet-log"></div></div>{% endblock %}{% block javascript %}<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.slim.js"></script><script src="{{url_for('static', filename="js/canvasjs.min.js" )}}"></script><script>
-	var xValue = 0;
+	var xValue = 1;
 	var dataPoints = [];
 	var chart = new CanvasJS.Chart("chartContainer", {
 		theme: "light2",
@@ -18,16 +18,17 @@
 		},
 		data: [{
 			type: "line",
+			cursor: "pointer",
 			dataPoints: dataPoints
 		}],
 		axisY:{
-			maximum:1.2,
-			minimum:-1.2
+			maximum:1.1,
+			minimum:-1.1
 		}
 	});
 
 	function addData(data) {
-		dataPoints.push({x: data[0][0], y: (data[0][1])});
+		dataPoints.push({x: data[0][0], y: (data[0][1]), click: function(e){window.location.href="#tweet-"+data[0][0]; highlight(data[0][0]);}});
 		xValue++;
 		yValue = (data[0][1]);
 		chart.render();
@@ -36,7 +37,7 @@
 	var socket = io.connect('//' + document.domain + ':' + location.port);
 
 	socket.on('new tweet', res => {
-		append = '<span class="tweet">' + xValue + ': '+ res.tweet +'</span>'
+		append = '<span class="tweet" id="tweet-' + xValue + '">' + xValue + ': '+ res.tweet +'</span>'
 		tweetLog = document.querySelector("#tweet-log")
 		content = tweetLog.innerHTML
 		tweetLog.innerHTML = append + content
@@ -58,6 +59,12 @@
 			socket.emit('continue-stream', {'s':1})
 			control.innerHTML = "Pause"
 		}
+	}	
+	current = 1;
+	function highlight(id){
+		document.querySelector("#tweet-"+(current)).style = "";
+		document.querySelector("#tweet-"+(id)).style = "font-weight:600;color:red;";
+		current = id;
 	}
 </script>
 {% endif %}

@@ -6,7 +6,7 @@ from flask_socketio import SocketIO, emit
 from os import environ
 
 import modules.forms as forms
-import modules.twitter as tw
+import modules.analyze as tw
 from modules.load_model import LoadModel
 
 from threading import Thread
@@ -28,15 +28,21 @@ port = int(environ.get("PORT", 5000))
 model = LoadModel("NaiveBayes")
 
 def weigh(topics):
+	'''
+	Assigns weights to topics for tag cloud
+	'''
 	maximum = topics[0][1]
 	shuffle(topics)
 	topics = dict(topics)
 
 	for key in topics:
-		topics[key] = floor(topics[key]/maximum*6)
+		topics[key] = floor(topics[key]/maximum*5)
 	return topics
 
 def changeState(P):
+	'''
+	Function to stop the twitter stream
+	'''
 	global thread
 	global run
 
@@ -58,6 +64,9 @@ class Listener(tw.listener):
 		return run
 
 def stream(tag):
+	'''
+	Function to start a twitter stream on keyword `tag`
+	'''
 	stream = tw.Stream(tw.auth, Listener())
 	stream.filter(languages=["en"], track=[tag])
 
@@ -65,9 +74,21 @@ def stream(tag):
 def index():
     return render_template("home.html", title="Sentiment Analysis")
 
-@app.route('/analyze/text')
+@app.route('/analyze/text', methods=["GET", "POST"])
 def text():
-	return render_template('text.html',title="Text Analysis")
+	text = request.form.get("text")
+	topics,polarities, sentences = None, None, None
+	if text:
+		topics = weigh(tw.getTopics([text], 10))
+		sentences = tw.textTokenize(text)
+		text_polarity = model.label(text)
+
+		sentences = tw.group_by_polarity([(model.label(sentence), sentence) for sentence in sentences])
+
+		polarities = {}
+		for polarity, sentence in sentences.items():
+			polarities[polarity] = len(sentence)
+	return render_template('text.html',title="Text Analysis", form=forms.TextClassification(data={"text":text}), topics=topics, polarities=polarities, sentences=sentences)
 
 @app.route('/about')
 def about():
@@ -105,12 +126,21 @@ def analyze_twitter_st(st):
 
 @app.route('/analyze/people/<string:name>')
 def analyze_people(name):
-	tweets = list(reversed(tw.getTweets(name, 65)))
-	topics = weigh(tw.getTopics([tweet["full_text"] for tweet in tweets], 15))
-	polarity = []
-	for tweet in tweets:
-		polarity.append(model.polarity(tweet["full_text"]))
-	return render_template("profile.html", title=(name+" - Profile Sentiment"), tweets=tweets, polarities=polarity, n=name, topics=topics)
+	error = None
+	try:
+		tweets = list(reversed(tw.getTweets(name, 65)))		
+		topics = weigh(tw.getTopics([tweet["full_text"] for tweet in tweets], 15))
+		polarity = []
+		for tweet in tweets:
+			polarity.append(model.polarity(tweet["full_text"]))
+
+		t = {}
+		for sn, tweet in enumerate(tweets): t[str(sn+1)] = tweet
+		tweets = t
+	except Exception as e:
+		tweets, polarity, topics = None, None, None
+		error = "That twitter handle doesn't seem to exist!"
+	return render_template("profile.html", title=(name+" - Profile Sentiment"), tweets=tweets, polarities=polarity, n=name, topics=topics, error=error)
 
 @socketio.on("stop-stream")
 def stop(data):
