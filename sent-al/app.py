@@ -77,9 +77,11 @@ def index():
 @app.route('/analyze/text', methods=["GET", "POST"])
 def text():
 	text = request.form.get("text")
-	topics,polarities, sentences = None, None, None
+	topics, polarities, sentences, f = None, None, None, None
 	if text:
-		topics = weigh(tw.getTopics([text], 10))
+		f = 1
+		topics = tw.getTopics([text], 10)
+		topics = weigh(topics) if topics else None
 		sentences = tw.textTokenize(text)
 		text_polarity = model.label(text)
 
@@ -88,7 +90,7 @@ def text():
 		polarities = {}
 		for polarity, sentence in sentences.items():
 			polarities[polarity] = len(sentence)
-	return render_template('text.html',title="Text Analysis", form=forms.TextClassification(data={"text":text}), topics=topics, polarities=polarities, sentences=sentences)
+	return render_template('text.html',title="Text Analysis", form=forms.TextClassification(data={"text":text}), topics=topics, polarities=polarities, sentences=sentences, f=f)
 
 @app.route('/about')
 def about():

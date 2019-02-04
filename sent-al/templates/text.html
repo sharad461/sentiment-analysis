@@ -21,7 +21,10 @@
 		<div class="col-lg-9">
 			<div id="chartContainer" style="height: 300px; width: 100%;"></div>
 		</div>
-	</div><hr>{% endif %}
+	</div><hr>{% elif f %}
+	<div class="alert alert-dismissible alert-danger">
+		Please provide a longer text.
+	</div>{% endif %}
 	<form id="textCl-form" method="POST">
 		{{ form.hidden_tag() }}
 		<div class="form-group">

@@ -1,7 +1,7 @@
 import analyze
 import re
-handle = "SkyNews"
-tweets = [tweet["full_text"] for tweet in twitter.getTweets(handle, 1000)]
+handle = "NBCNews"
+tweets = [tweet["full_text"] for tweet in analyze.getTweets(handle, 1000)]
 
 with open(handle+".txt", "a", encoding="utf-8") as f:
 	for tweet in tweets:
