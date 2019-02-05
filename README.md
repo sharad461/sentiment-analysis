@@ -1,5 +1,5 @@
 # sentiment-analysis
-A most basic text sentiment analysis system built especially for tweets. Only a rudimentary Naive Bayes model implemented so far. 
+A most basic text sentiment analysis system built especially for tweets. Only a rudimentary Naive Bayes model implemented. 
 
 Interface is web, uses Python Flask, SocketIO, canvas.js (for data visualization), NLTK.
 
