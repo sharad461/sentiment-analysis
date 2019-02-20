@@ -9,10 +9,11 @@ from collections import Counter
 from re import match
 from collections import defaultdict
 
-TWIT_API = getenv('TWIT_API', 'UdBwYOS9iyz2AKM2XlVLj041v')
-TWIT_SECRET = getenv('TWIT_SECRET', 'mFnjIkKlqOIFEF8pLS8JKNUaNmzIdJPl5KD8evx2ijbVZ8Im2N')
-TWIT_ACCESS_TOKEN = getenv('TWIT_ACCESS_TOKEN', '1074976321523146757-tEPhRk2TTSoQ9QQoYQSUY2RxwNAtAe')
-TWIT_ACCESS_SECRET = getenv('TWIT_ACCESS_SECRET', 'f4ed2V4B72aBxMo3Hy0ezPIJ5UIqc8SORUs0nSUBvA3lX')
+# Get the follow keys from a twitter account
+TWIT_API = getenv('TWIT_API', '')
+TWIT_SECRET = getenv('TWIT_SECRET', '')
+TWIT_ACCESS_TOKEN = getenv('TWIT_ACCESS_TOKEN', '')
+TWIT_ACCESS_SECRET = getenv('TWIT_ACCESS_SECRET', '')
 
 class listener(StreamListener):
 	# Currently reads only the tweet text. Also see if metadata can improve analysis.
