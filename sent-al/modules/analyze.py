@@ -9,7 +9,7 @@ from collections import Counter
 from re import match
 from collections import defaultdict
 
-# Get the follow keys from a twitter account
+# Get the follow keys from your twitter account
 TWIT_API = getenv('TWIT_API', '')
 TWIT_SECRET = getenv('TWIT_SECRET', '')
 TWIT_ACCESS_TOKEN = getenv('TWIT_ACCESS_TOKEN', '')
